@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Notification Email</title>
+    <style>
+        /* Inline CSS styles */
+        body {
+            background-color: #f0f4f8;
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            max-width: 400px;
+            margin: 0 auto;
+            background-color: #ffffff;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 30px 20px;
+            text-align: center;
+        }
+
+        .logo {
+            width: 100px;
+            margin-bottom: 20px;
+        }
+
+        .notification-message {
+            background-color: #3D7EDF;
+            color: #ffffff;
+            font-size: 18px;
+            font-weight: bold;
+            padding: 15px 25px;
+            border-radius: 6px;
+            margin-top: 20px;
+        }
+
+        .note {
+            color: #6b7280;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        p {
+            color: #555;
+            margin-bottom: 10px;
+        }
+
+        .footer {
+            margin-top: 30px;
+            font-size: 12px;
+            color: #999;
+        }
+    </style>
+</head>
+
+<body>
+<div class="container">
+    <img src="https://bugzapper-bucket.s3.ap-southeast-2.amazonaws.com/bug-logo.png" alt="logo"
+         class="logo" />
+    <h1>Notification from BugZapper</h1>
+    <p th:if="${type == 'apply'}">Stay alert. They have applied on your post.</p>
+    <p th:if="${type == 'report'}">Stay alert. They have report on your phase.</p>
+    <p th:if="${type == 'submit_task'}">Stay alert. They have submitted a task for you</p>
+    <p th:if="${type == 'assign_task'}">Stay alert. They have assigned a task for you</p>
+    <p th:if="${type == 'updated_task'}">Stay alert. They have updated a task progress</p>
+    <p th:if="${type == 'join_company'}">Stay alert. They have joined your company</p>
+    <p th:if="${type == 'add_to_phase'}">Stay alert. They have added you to a phase</p>
+    <p th:if="${type == 'joined_phase'}">Stay alert. They have joined into your phase</p>
+    <div class="notification-message" th:text="${message}">Your notification message goes here</div>
+    <div class="note">If you have any questions, feel free to contact our support team.</div>
+    <div class="footer">© 2024 BugZapper. All rights reserved.</div>
+</div>
+</body>
+</html>
