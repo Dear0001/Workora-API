@@ -21,6 +21,8 @@ public class Phase {
     private String link;
     private Boolean isPrivate;
     private Project project;
+    /** OPEN (default) or CLOSED — a CLOSED public phase no longer accepts new bug reports. */
+    private String status;
     private LocalDateTime createdAt = LocalDateTime.now();
     private LocalDateTime updatedAt;
     private LocalDateTime deletedAt;

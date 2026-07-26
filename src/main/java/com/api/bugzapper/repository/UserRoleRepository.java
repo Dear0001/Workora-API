@@ -381,10 +381,22 @@ public interface UserRoleRepository {
     List<Integer> findCompanyIdAsAdminByUserId(Integer userId);
 
     @Select("""
-                SELECT DISTINCT company_id FROM user_roles WHERE user_id = #{userId} 
-                AND role_id IN (1,2) AND company_id IS NOT NULL AND project_id IS NOT NULL AND phase_id IS NOT NULL;    
+                SELECT DISTINCT company_id FROM user_roles WHERE user_id = #{userId}
+                AND role_id IN (1,2) AND company_id IS NOT NULL AND project_id IS NOT NULL AND phase_id IS NOT NULL;
             """)
     List<Integer> findCompanyIdAsAdminByUserIdWithNotNull(Integer userId);
+
+    /**
+     * Companies where the user is COMPANY_OWNER or PROJECT_MANAGER, matching on any role row
+     * (including the company-wide owner/PM row with project_id/phase_id both null) — unlike
+     * findCompanyIdAsAdminByUserIdWithNotNull, which requires a project+phase-scoped row and so
+     * misses owners/PMs who only ever got the company-wide grant.
+     */
+    @Select("""
+                SELECT DISTINCT company_id FROM user_roles WHERE user_id = #{userId}
+                AND role_id IN (1,2) AND company_id IS NOT NULL;
+            """)
+    List<Integer> findCompanyIdAsOwnerOrPmByUserId(Integer userId);
 
     @Update("""
                 UPDATE user_roles SET project_id = #{projectId}, role_id = 2 
@@ -573,6 +585,11 @@ public interface UserRoleRepository {
     """)
     // role_id 1 = COMPANY_OWNER, 5 = RECRUITER — both may manage recruitment posts/applications.
     Integer isOwnerOrRecruiter(@Param("userId") Integer userId, @Param("companyId") Integer companyId);
+
+    @Select("""
+        SELECT COUNT(*) FROM user_roles WHERE user_id = #{userId} AND company_id = #{companyId} AND role_id = 2
+    """)
+    Integer isProjectManagerOfCompany(@Param("userId") Integer userId, @Param("companyId") Integer companyId);
 
     @Select("""
         SELECT user_id FROM user_roles WHERE company_id = #{companyId} AND role_id = 1 LIMIT 1

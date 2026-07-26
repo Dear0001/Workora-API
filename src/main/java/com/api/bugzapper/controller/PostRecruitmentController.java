@@ -4,6 +4,7 @@ import com.api.bugzapper.model.dto.PostRecruitmentNewsfeed;
 import com.api.bugzapper.model.entity.PostRecruitment;
 import com.api.bugzapper.model.request.PostRecruitmentRequest;
 import com.api.bugzapper.model.request.PostRecruitmentRequestForUpdate;
+import com.api.bugzapper.model.request.PostRecruitmentStatusRequest;
 import com.api.bugzapper.model.response.ApiResponse;
 import com.api.bugzapper.service.postRecruitmentService.PostRecruitmentService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -87,6 +88,19 @@ public class PostRecruitmentController {
         PostRecruitment postRecruitment = postRecruitmentService.updatePostRecruitmentById(postRecruitmentRequest, id);
         ApiResponse apiResponse = ApiResponse.builder()
                 .message("PostRecruitment updated Successfully")
+                .status(HttpStatus.OK)
+                .code(200)
+                .payload(postRecruitment)
+                .build();
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @Operation(summary = "close or reopen a recruitment post (owner/recruiter/PM only)")
+    @PutMapping("/{id}/status")
+    public ResponseEntity<?> updatePostRecruitmentStatus(@Valid @RequestBody PostRecruitmentStatusRequest statusRequest, @PathVariable Integer id) {
+        PostRecruitment postRecruitment = postRecruitmentService.updatePostRecruitmentStatus(id, statusRequest.getStatus());
+        ApiResponse apiResponse = ApiResponse.builder()
+                .message("PostRecruitment status updated Successfully")
                 .status(HttpStatus.OK)
                 .code(200)
                 .payload(postRecruitment)

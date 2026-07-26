@@ -64,6 +64,9 @@ public class ReportService {
     }
     public void createReportPhase(ReportPhaseRequest reportPhaseRequest) {
         Phase phase = phaseService.findById(reportPhaseRequest.getPhaseId());
+        if ("CLOSED".equalsIgnoreCase(phase.getStatus())) {
+            throw new CustomNotFoundException("This phase is no longer accepting bug reports.");
+        }
         AppUser currentUser = getCurrentUser.getCurrentUser();
         Integer userId = currentUser.getUserId();
         AppUserDTO appUserDTO = appUserService.getUserDtoById(userId);
@@ -72,6 +75,11 @@ public class ReportService {
         Integer projectId = projectService.getProjectByPhaseId(reportPhaseRequest.getPhaseId());
         List<Integer> userReceiverIds =  userRoleRepository.findUserIdByProjectId(projectId);
         Integer companyId = companyService.getCompanyIdByPhaseId(phase.getId());
+
+        Integer isMemberOfCompany = userRoleRepository.isUserInCompany(userId, companyId);
+        if (isMemberOfCompany != null && isMemberOfCompany > 0) {
+            throw new CustomNotFoundException("You are already a member of this company, so you can not report a bug on its own post.");
+        }
 
         // Insert notification to its table
         Integer reportId = reportRepository.createReportPhase(reportPhaseRequest, userId);

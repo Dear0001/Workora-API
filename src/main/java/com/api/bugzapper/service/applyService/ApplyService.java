@@ -43,10 +43,14 @@ public class ApplyService {
         PostRecruitment postRecruitment = postRecruitmentService.getPostRecruitmentById(applyRequest.getPostRecruitmentId());
 
         Integer applyPostRecruitmentId = applyRepository.getApplyPostRecruitmentId(currentUser.getUserId(), applyRequest.getPostRecruitmentId());
-        Integer isOwnerOfThePost = userRoleRepository.isAdminOfThePost(currentUser.getUserId(), postRecruitment.getCompanyId());
+        Integer isMemberOfCompany = userRoleRepository.isUserInCompany(currentUser.getUserId(), postRecruitment.getCompanyId());
 
-        if (isOwnerOfThePost > 0) {
-            throw new CustomNotFoundException("You are the admin of this post you can not apply to this post");
+        if (isMemberOfCompany != null && isMemberOfCompany > 0) {
+            throw new CustomNotFoundException("You are already a member of this company, so you can not apply to its own recruitment post.");
+        }
+
+        if ("CLOSED".equalsIgnoreCase(postRecruitment.getStatus())) {
+            throw new CustomNotFoundException("This post is no longer accepting applications.");
         }
 
         if (applyPostRecruitmentId != null) {

@@ -460,8 +460,39 @@ public class PhaseService {
         return phases;
     }
     public List<PhaseNewsfeedDTO> getAllPublicPhase(Integer offset, Integer limit) {
+        List<PhaseNewsfeedDTO> phases = phaseRepository.getAllPublicPhase(offset, limit);
+        applyCanManage(phases);
+        return phases;
+    }
 
-        return  phaseRepository.getAllPublicPhase(offset, limit);
+    private void applyCanManage(List<PhaseNewsfeedDTO> phases) {
+        Integer currentUserId = getCurrentUser.getCurrentUser().getUserId();
+        for (PhaseNewsfeedDTO phase : phases) {
+            Integer companyId = phase.getCompanyId();
+            boolean canManage = companyId != null
+                    && (userRoleRepository.isAdminOrProjectManager(currentUserId, companyId) > 0
+                        || companyService.isOwnerOfCompany(currentUserId, companyId) > 0);
+            phase.setCanManage(canManage);
+        }
+    }
+
+    /** Owner/project-manager-only: close or reopen a public phase to new bug reports. */
+    public Phase updatePhaseStatus(Integer phaseId, String status) {
+        Phase phase = findById(phaseId);
+        Integer currentUserId = getCurrentUser.getCurrentUser().getUserId();
+        Integer companyId = companyService.getCompanyIdByPhaseId(phaseId);
+        validateAdminOrProjectManager(currentUserId, companyId);
+
+        String normalized;
+        if ("CLOSED".equalsIgnoreCase(status)) {
+            normalized = "CLOSED";
+        } else if ("OPEN".equalsIgnoreCase(status)) {
+            normalized = "OPEN";
+        } else {
+            throw new CustomNotFoundException("Status must be either OPEN or CLOSED");
+        }
+        phaseRepository.updatePhaseStatus(phaseId, normalized);
+        return phaseRepository.findById(phaseId);
     }
     public Phase createPublicPhase(PublicPhaseRequest publicPhaseRequest) {
         AppUser currentUser = getCurrentUser.getCurrentUser();
@@ -561,6 +592,8 @@ public class PhaseService {
     }
     public List<PhaseNewsfeedDTO> getAllPublicPhasesByCompanyId(Integer companyId, Integer offset, Integer limit) {
         companyService.getCompanyById(companyId);
-        return phaseRepository.getAllPublicPhasesByCompanyId(companyId, offset, limit);
+        List<PhaseNewsfeedDTO> phases = phaseRepository.getAllPublicPhasesByCompanyId(companyId, offset, limit);
+        applyCanManage(phases);
+        return phases;
     }
 }

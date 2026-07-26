@@ -26,4 +26,8 @@ public class PhaseNewsfeedDTO {
     private String companyName;
     private String companyProfile;
     private String companyDescription;
+    /** OPEN (default) or CLOSED — a CLOSED public phase no longer accepts new bug reports. */
+    private String status;
+    /** Not persisted — computed per-request: can the current user edit/close this phase? */
+    private Boolean canManage;
 }

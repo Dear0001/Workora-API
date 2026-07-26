@@ -26,6 +26,8 @@ public class PostRecruitmentRequest {
     private String image;
     @NotNull(message = "CompanyId must not be null.")
     private Integer companyId;
+    /** Optional — scopes the post to a specific project within the company. Null = company-wide. */
+    private Integer projectId;
     @NotBlank(message = "applicationTitle must not be blank.")
     private String applicationTitle;
     private List<Map<String, Object>> postData;

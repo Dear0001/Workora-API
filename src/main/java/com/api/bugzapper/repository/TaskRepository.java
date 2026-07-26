@@ -54,6 +54,7 @@ public interface TaskRepository {
 
     @Delete("""
                 DELETE FROM task WHERE task_id = #{id}
+                
             """)
     @ResultMap("taskMapper")
     void deleteTaskById(Integer id);

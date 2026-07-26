@@ -27,4 +27,8 @@ public class PostRecruitmentRequestForUpdate {
     private String applicationTitle;
     private List<Map<String, Object>> postData;
     private Integer roleId;
+    /** OPEN or CLOSED. Ignored/left unchanged if omitted. */
+    private String status;
+    /** Optional — scopes the post to a specific project. Ignored/left unchanged if omitted. */
+    private Integer projectId;
 }

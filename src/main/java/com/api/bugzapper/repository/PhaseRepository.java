@@ -28,6 +28,7 @@ public interface PhaseRepository {
             @Result(property = "createdAt", column = "created_at"),
             @Result(property = "updatedAt", column = "updated_at"),
             @Result(property = "price", column = "price"),
+            @Result(property = "status", column = "status"),
             @Result(property = "project", column = "project_id",
                     one = @One(select = "com.api.bugzapper.repository.ProjectRepository.getProjectById")
             )
@@ -139,6 +140,7 @@ public interface PhaseRepository {
             @Result(property = "isPrivate", column = "is_private"),
             @Result(property = "createdAt", column = "created_at"),
             @Result(property = "updatedAt", column = "updated_at"),
+            @Result(property = "status", column = "status"),
             @Result(property = "companyId", column = "company_id"),
             @Result(property = "companyName", column = "company_name"),
             @Result(property = "companyProfile", column = "profile_image"),
@@ -167,15 +169,22 @@ public interface PhaseRepository {
             """)
     Integer getPhaseByTaskId(Integer taskId);
     @Select("""
-        SELECT p.*
+        SELECT p.*, c.company_id, c.company_name, c.profile_image, c.description AS company_description
         FROM phases p
         JOIN project pr ON p.project_id = pr.project_id
+        JOIN company c ON pr.company_id = c.company_id
         WHERE pr.company_id = #{companyId}
         AND p.is_private = false
         LIMIT #{limit} OFFSET (#{offset} - 1) * #{limit}
     """)
-    @ResultMap("phaseMapper")
+    @ResultMap("publicPhaseMapper")
     List<PhaseNewsfeedDTO> getAllPublicPhasesByCompanyId(Integer companyId, Integer offset, Integer limit);
+
+    @Update("""
+                UPDATE phases SET status = #{status}, updated_at = CURRENT_TIMESTAMP
+                WHERE phase_id = #{id}
+            """)
+    void updatePhaseStatus(@Param("id") Integer id, @Param("status") String status);
 
     @Select("""
         SELECT DISTINCT ON (ur.phase_id) p.*

@@ -58,8 +58,8 @@ public class RateFeedbackService{
     }
     public RateFeedback companyRateFeedbackToUser(RateFeedbackCompanyToUserRequest request) {
 //        AppUser currentUser = getCurrentUser.getCurrentUser();
-        if (!isCurrentUserAdminOfCompany(request.getCompanyId())) {
-            throw new CustomNotFoundException("You are not an admin of the company.");
+        if (!canCurrentUserGiveFeedback(request.getCompanyId())) {
+            throw new CustomNotFoundException("Only the company owner or a project manager can give feedback to a user.");
         }
         appUserService.getUserById(request.getUserId());
 
@@ -87,8 +87,9 @@ public class RateFeedbackService{
         return rateFeedbackRepository.getAllRateFeedbackOfCompanyToUser(userId);
     }
 
-    private boolean isCurrentUserAdminOfCompany(Integer companyId) {
+    /** Owner or project manager of the company may give feedback to a user (e.g. a bug reporter). */
+    private boolean canCurrentUserGiveFeedback(Integer companyId) {
         AppUser currentUser = getCurrentUser.getCurrentUser();
-        return permissionService.isCompanyOwner(currentUser.getUserId(), companyId);
+        return permissionService.isOwnerOrProjectManager(currentUser.getUserId(), companyId);
     }
 }

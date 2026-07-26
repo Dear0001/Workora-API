@@ -27,6 +27,13 @@ public class PostRecruitment {
     private String companyName;
     private String companyProfile;
     private String companyDescription;
+    /** Optional — scopes the post to a specific project. Null means company-wide. */
+    private Integer projectId;
+    private String projectName;
     /** Role granted to an applicant when their application is accepted. Defaults to DEVELOPER if null. */
     private Integer roleId;
+    /** OPEN (default) or CLOSED — a CLOSED post no longer accepts new applications. */
+    private String status;
+    /** Not persisted — computed per-request: can the current user edit/close this post? */
+    private Boolean canManage;
 }

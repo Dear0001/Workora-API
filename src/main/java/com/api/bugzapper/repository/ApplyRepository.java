@@ -50,7 +50,7 @@ public interface ApplyRepository {
 
     @Select("""
         SELECT
-            ar.apply_post_recruitment_id
+            ar.id
         FROM
             apply a
                 JOIN
@@ -67,8 +67,7 @@ public interface ApplyRepository {
                  JOIN users u ON a.user_id = u.user_id
                  JOIN apply_post_recruitment apr ON a.apply_id = apr.apply_id
                  JOIN post_recruitment pr ON apr.post_recruitment_id = pr.post_recruitment_id
-                 JOIN user_roles ur ON u.user_id = ur.user_id
-                 JOIN company c ON ur.company_id = c.company_id
+                 JOIN company c ON pr.company_id = c.company_id
         WHERE c.company_id = #{companyId};
     """)
     @Results(id = "getApplyMapper", value = {

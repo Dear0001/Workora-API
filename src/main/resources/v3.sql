@@ -366,3 +366,12 @@ ALTER TABLE post_recruitment
 
 ALTER TABLE post_recruitment
     ADD COLUMN IF NOT EXISTS role_id INTEGER REFERENCES roles(role_id);
+ALTER TABLE post_recruitment
+    ADD COLUMN IF NOT EXISTS status VARCHAR(20) NOT NULL DEFAULT 'OPEN';
+
+ALTER TABLE phases
+    ADD COLUMN IF NOT EXISTS status VARCHAR(20) NOT NULL DEFAULT 'OPEN';
+
+ALTER TABLE post_recruitment
+    ADD COLUMN IF NOT EXISTS project_id INTEGER
+        REFERENCES projects(project_id);

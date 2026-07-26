@@ -10,7 +10,7 @@ public interface ApplyPostRecruitmentRepository {
         VALUES (#{postRecruitmentId}, #{applyId}, CURRENT_TIMESTAMP)
     """)
     @Results(id = "mapper", value = {
-            @Result(property = "applyPostRecruitmentId", column = "apply_post_recruitment_id"),
+            @Result(property = "applyPostRecruitmentId", column = "id"),
             @Result(property = "postRecruitmentId", column = "post_recruitment_id"),
             @Result(property = "applyId", column = "apply_id"),
             @Result(property = "createdAt", column = "created_at")

@@ -159,19 +159,26 @@ public interface DashboardRepository {
                          t.created_at,
                          t.due_date,
                          t.attachment,
-                         ur.company_id,
+                         c.company_id,
                          c.company_name
             FROM
                 task t
                     JOIN
-                user_roles ur ON t.task_id = ur.task_id
+                phases ph ON t.phase_id = ph.phase_id
                     JOIN
-                company c ON ur.company_id = c.company_id
+                project p ON ph.project_id = p.project_id
+                    JOIN
+                company c ON p.company_id = c.company_id
+                    JOIN
+                user_roles ur ON ur.user_id = #{userId} AND ur.company_id = c.company_id
             WHERE
-                ur.user_id = #{userId}
+                ur.role_id = 1
+                OR (ur.role_id = 2 AND ur.project_id = p.project_id)
+                OR ur.phase_id = t.phase_id
+                OR ur.task_id = t.task_id
             ORDER BY
                 t.created_at DESC
-            LIMIT #{limit} OFFSET (#{offset}-1) * #{limit};                             
+            LIMIT #{limit} OFFSET (#{offset}-1) * #{limit};
     """)
     @Results(id = "taskMapper", value = {
             @Result(property = "taskId", column = "task_id"),

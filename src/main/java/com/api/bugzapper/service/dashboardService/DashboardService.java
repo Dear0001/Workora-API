@@ -94,7 +94,7 @@ public class DashboardService {
         Integer userId = currentUser.getCurrentUser().getUserId();
         appUserService.getUserById(userId);
         System.out.println("current user is " + userId);
-        List<Integer> companyIds = userRoleRepository.findCompanyIdAsAdminByUserIdWithNotNull(userId);
+        List<Integer> companyIds = userRoleRepository.findCompanyIdAsOwnerOrPmByUserId(userId);
         if (companyIds.isEmpty()) {
             throw new CustomNotFoundException("You have no company as admin or project manager");
         }

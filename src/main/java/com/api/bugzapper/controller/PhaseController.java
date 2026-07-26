@@ -181,6 +181,19 @@ public class PhaseController {
         return ResponseEntity.ok(apiResponse);
     }
 
+    @Operation(summary = "close or reopen a public phase to new bug reports (owner/project-manager only)")
+    @PutMapping("/{phaseId}/status")
+    public ResponseEntity<?> updatePhaseStatus(@PathVariable Integer phaseId, @RequestParam String status) {
+        Phase phase = phaseService.updatePhaseStatus(phaseId, status);
+        ApiResponse apiResponse = ApiResponse.builder()
+                .message("Phase status updated successfully.")
+                .status(HttpStatus.OK)
+                .code(200)
+                .payload(phase)
+                .build();
+        return ResponseEntity.ok(apiResponse);
+    }
+
     @Operation(summary = "remove member from phase")
     @DeleteMapping("/removeMemberFromPhaseByPhaseId/{phaseId}")
     public ResponseEntity<?> removeMemberFromPhase(@PathVariable Integer phaseId, @RequestBody UserIdsRequest userIds) {
