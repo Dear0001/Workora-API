@@ -16,6 +16,7 @@ public interface ReportRepository {
             @Result(property = "description", column = "description"),
             @Result(property = "location", column = "location"),
             @Result(property = "problem", column = "problem"),
+            @Result(property = "image", column = "image"),
             @Result(property = "createdAt", column = "created_at"),
             @Result(property = "userId", column = "user_id",
                     one = @One(select = "com.api.bugzapper.repository.AppUserRepository.getUserDtoById")),
@@ -28,11 +29,13 @@ public interface ReportRepository {
 
 
     @Select("""
-                INSERT INTO report(description,location,problem,created_at,user_id,phase_id)
-                VALUES (#{report.description}, #{report.location}, #{report.problem}, CURRENT_TIMESTAMP, 
+                INSERT INTO report(description,location,problem,image,created_at,user_id,phase_id)
+                VALUES (#{report.description}, #{report.location}, #{report.problem}, #{imageUrl}, CURRENT_TIMESTAMP, 
                 #{userId}, #{report.phaseId})
             """)
-    Integer createReportPhase(@Param("report") ReportPhaseRequest reportPhaseRequest,@Param("userId") Integer userId);
+    Integer createReportPhase(@Param("report") ReportPhaseRequest reportPhaseRequest,
+                              @Param("userId") Integer userId,
+                              @Param("imageUrl") String imageUrl);
 
     @Select("""
         SELECT * FROM report WHERE phase_id = #{phaseId} LIMIT #{limit} OFFSET (#{offset}-1) * #{limit} 

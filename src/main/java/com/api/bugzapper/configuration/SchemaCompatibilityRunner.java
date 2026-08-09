@@ -26,6 +26,7 @@ public class SchemaCompatibilityRunner implements ApplicationRunner {
     public void run(ApplicationArguments args) {
         try {
             ensureProjectTable();
+            ensureReportsImageColumn();
             mergeProjectsIntoProjectIfBothExist();
             repointAllProjectsForeignKeys();
             dropOrphanProjectsTable();
@@ -35,6 +36,28 @@ public class SchemaCompatibilityRunner implements ApplicationRunner {
                     e.getMessage(),
                     e);
         }
+    }
+
+    private void ensureReportsImageColumn() {
+        if (!tableExists("reports")) {
+            return;
+        }
+
+        boolean hasImageColumn = jdbcTemplate.queryForObject(
+                """
+                SELECT EXISTS (
+                    SELECT 1 FROM information_schema.columns
+                    WHERE table_schema = 'public' AND table_name = 'reports' AND column_name = 'image'
+                )
+                """,
+                Boolean.class);
+
+        if (Boolean.TRUE.equals(hasImageColumn)) {
+            return;
+        }
+
+        jdbcTemplate.execute("ALTER TABLE reports ADD COLUMN image TEXT");
+        log.info("Added image column to reports table.");
     }
 
     private void ensureProjectTable() {

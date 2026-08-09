@@ -18,6 +18,7 @@ public class Report {
     private String description;
     private String location;
     private String problem;
+    private String image;
     private LocalDateTime createdAt = LocalDateTime.now();
     private AppUserDTO userId;
     private Task taskId;

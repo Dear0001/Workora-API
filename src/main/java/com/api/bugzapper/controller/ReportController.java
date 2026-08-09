@@ -11,6 +11,7 @@ import jakarta.validation.constraints.Positive;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -27,8 +28,19 @@ public class ReportController {
     }
 
     @Operation(summary = "report to public phase")
-    @PostMapping("/createReportPhase")
-    public ResponseEntity<?> createReportPhase(@Valid @RequestBody ReportPhaseRequest reportPhaseRequest) {
+    @PostMapping(value = "/createReportPhase", consumes = {"multipart/form-data"})
+    public ResponseEntity<?> createReportPhase(
+            @RequestPart("description") String description,
+            @RequestPart("problem") String problem,
+            @RequestPart("phaseId") String phaseId,
+            @RequestPart(value = "image", required = false) MultipartFile image) {
+        ReportPhaseRequest reportPhaseRequest = ReportPhaseRequest.builder()
+                .description(description)
+                .problem(problem)
+                .phaseId(Integer.parseInt(phaseId))
+                .location("Optional")
+                .image(image)
+                .build();
         reportService.createReportPhase(reportPhaseRequest);
         ApiResponse apiResponse = ApiResponse.builder()
                 .message("Report phase has been created successfully.")

@@ -152,19 +152,32 @@ public class ApplyService {
 
         Integer applicantId = apply.getUserId().getUserId();
         Integer companyId = postRecruitment.getCompanyId();
-        Integer roleId = postRecruitment.getRoleId() != null ? postRecruitment.getRoleId() : RoleId.DEVELOPER;
 
-        if (!userRoleRepository.isUserExistsInCompany(applicantId, companyId)) {
-            Integer placeholderUserRoleId = userRoleRepository.checkCompanyIdIsNull(applicantId);
-            if (placeholderUserRoleId != null) {
-                userRoleRepository.updateUserToCompany(applicantId, companyId, roleId, placeholderUserRoleId);
-            } else {
-                userRoleRepository.assignRoleToUserInCompany(applicantId, companyId, roleId);
+        boolean isOwner = userRoleRepository.isAdminOfThePost(currentUser.getUserId(), companyId) != null
+                && userRoleRepository.isAdminOfThePost(currentUser.getUserId(), companyId) > 0;
+        boolean isProjectManager = userRoleRepository.isProjectManagerOfCompany(currentUser.getUserId(), companyId) != null
+                && userRoleRepository.isProjectManagerOfCompany(currentUser.getUserId(), companyId) > 0;
+
+        if (isOwner) {
+            Integer roleId = postRecruitment.getRoleId() != null ? postRecruitment.getRoleId() : RoleId.DEVELOPER;
+            if (!userRoleRepository.isUserExistsInCompany(applicantId, companyId)) {
+                Integer placeholderUserRoleId = userRoleRepository.checkCompanyIdIsNull(applicantId);
+                if (placeholderUserRoleId != null) {
+                    userRoleRepository.updateUserToCompany(applicantId, companyId, roleId, placeholderUserRoleId);
+                } else {
+                    userRoleRepository.assignRoleToUserInCompany(applicantId, companyId, roleId);
+                }
             }
+            applyRepository.updateApplyStatus(applyId, "ACCEPTED");
+            return applyRepository.getApplyById(applyId);
         }
 
-        applyRepository.updateApplyStatus(applyId, "ACCEPTED");
-        return applyRepository.getApplyById(applyId);
+        if (isProjectManager) {
+            applyRepository.updateApplyStatus(applyId, "PENDING_OWNER_APPROVAL");
+            return applyRepository.getApplyById(applyId);
+        }
+
+        throw new CustomNotFoundException("You do not have permission to accept this application.");
     }
 
     /** Owner/recruiter-only: reject an application. Sets status REJECTED, grants no role. */

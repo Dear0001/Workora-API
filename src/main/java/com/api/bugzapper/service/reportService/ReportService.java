@@ -13,12 +13,15 @@ import com.api.bugzapper.service.companyService.CompanyService;
 import com.api.bugzapper.service.notificationService.NotificationService;
 import com.api.bugzapper.service.phaseService.PhaseService;
 import com.api.bugzapper.service.projectService.ProjectService;
+import com.api.bugzapper.service.minio.MinioStorageService;
 import com.api.bugzapper.service.userService.AppUserService;
 import com.api.bugzapper.util.EmailUtil;
 import jakarta.mail.MessagingException;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.io.IOException;
 import java.util.List;
 
 @Service
@@ -35,6 +38,7 @@ public class ReportService {
     private final GetCurrentUser getCurrentUser;
     private final CompanyService companyService;
     private final ProjectRepository projectRepository;
+    private final MinioStorageService minioStorageService;
     public Report getReportById(Integer id) {
         Report report = reportRepository.getReportById(id);
         if (report == null) {
@@ -81,8 +85,18 @@ public class ReportService {
             throw new CustomNotFoundException("You are already a member of this company, so you can not report a bug on its own post.");
         }
 
+        String imageUrl = null;
+        MultipartFile image = reportPhaseRequest.getImage();
+        if (image != null && !image.isEmpty()) {
+            try {
+                imageUrl = minioStorageService.uploadFile(image.getOriginalFilename(), image);
+            } catch (IOException e) {
+                throw new RuntimeException("Unable to upload report image to storage", e);
+            }
+        }
+
         // Insert notification to its table
-        Integer reportId = reportRepository.createReportPhase(reportPhaseRequest, userId);
+        Integer reportId = reportRepository.createReportPhase(reportPhaseRequest, userId, imageUrl);
 
         for (Integer userReceiverId : userReceiverIds) {
             if (userReceiverId.equals(userId)) {

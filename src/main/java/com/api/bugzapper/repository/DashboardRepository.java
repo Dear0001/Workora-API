@@ -247,7 +247,8 @@ public interface DashboardRepository {
                          u.user_id,
                          u.first_name,
                          u.last_name,
-                         a.created_at
+                         a.created_at,
+                         a.status
             FROM
                 users u
                     JOIN
@@ -273,6 +274,7 @@ public interface DashboardRepository {
             @Result(property = "lastName", column = "last_name"),
             @Result(property = "title", column = "title"),
             @Result(property = "companyName", column = "company_name"),
+            @Result(property = "status", column = "status"),
 
     })
     List<AppliesDTO> getAllApplyByCompanyId(Integer offset, Integer limit, Integer companyId);

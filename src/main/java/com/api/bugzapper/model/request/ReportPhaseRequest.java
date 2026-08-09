@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 
 @AllArgsConstructor
@@ -15,10 +16,10 @@ import lombok.NoArgsConstructor;
 public class ReportPhaseRequest {
     @NotBlank(message = "Description must not be blank.")
     private String description;
-    @NotBlank(message = "Location must not be blank.")
     private String location;
     @NotBlank(message = "Problem must not be blank.")
     private String problem;
     @NotNull(message = "Phase id must not be null.")
     private Integer phaseId;
+    private MultipartFile image;
 }

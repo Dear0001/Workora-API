@@ -14,6 +14,8 @@ TRUNCATE TABLE
 
     public.otps,
 
+    public.otps,
+
     public.user_roles,
     public.company_user_roles,
 
@@ -256,11 +258,12 @@ CREATE TABLE notifications (
 -- 11. REPORTS
 -- =========================
 
-CREATE TABLE reports (
+CREATE TABLE report (
                          report_id SERIAL PRIMARY KEY,
                          description TEXT NOT NULL,
                          location VARCHAR(255) NOT NULL,
                          problem VARCHAR(255) NOT NULL,
+                         image VARCHAR(255),
                          status VARCHAR(50),
                          user_id INT NOT NULL REFERENCES users,
                          phase_id INT NOT NULL REFERENCES phases,
@@ -350,7 +353,18 @@ ALTER TABLE post_recruitment
 -- ---------------------------------------------------------------------------
 
 ALTER TABLE apply
-    ADD COLUMN IF NOT EXISTS status VARCHAR(20) NOT NULL DEFAULT 'PENDING';
+    ADD COLUMN IF NOT EXISTS status VARCHAR(50) NOT NULL DEFAULT 'PENDING';
+
+DO $$
+BEGIN
+    IF EXISTS (
+        SELECT 1 FROM information_schema.columns
+        WHERE table_name = 'apply' AND column_name = 'status'
+    ) THEN
+        ALTER TABLE apply ALTER COLUMN status TYPE VARCHAR(50);
+    END IF;
+END
+$$;
 
 -- ---------------------------------------------------------------------------
 -- 4) Verification queries (run manually, not part of migration)
@@ -375,3 +389,21 @@ ALTER TABLE phases
 ALTER TABLE post_recruitment
     ADD COLUMN IF NOT EXISTS project_id INTEGER
         REFERENCES projects(project_id);
+ALTER TABLE report
+    ALTER COLUMN location DROP NOT NULL;
+
+ALTER TABLE apply
+    ADD COLUMN IF NOT EXISTS status VARCHAR(50) NOT NULL DEFAULT 'PENDING';
+
+DO $$
+    BEGIN
+        IF EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_name = 'apply' AND column_name = 'status'
+        ) THEN
+            ALTER TABLE apply ALTER COLUMN status TYPE VARCHAR(50);
+        END IF;
+    END
+$$;
+
+

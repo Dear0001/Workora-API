@@ -113,18 +113,14 @@ public class DashboardService {
         Integer userId = currentUser.getCurrentUser().getUserId();
         appUserService.getUserById(userId);
 
-        List<Integer> companyIds = userRoleRepository.findCompanyIdAsAdminByUserId(userId);
-        System.out.println("this is company ids : " + companyIds);
-
-        if (companyIds == null) {
-            throw new CustomNotFoundException("You are not the owner");
+        List<Integer> companyIds = userRoleRepository.findCompanyIdAsOwnerOrPmByUserId(userId);
+        if (companyIds == null || companyIds.isEmpty()) {
+            throw new CustomNotFoundException("You are not authorized to view company applications.");
         }
+
         List<AppliesDTO> appliesDTOs = new ArrayList<>();
-
         for (Integer companyId : companyIds) {
-
             List<AppliesDTO> appliesDTOList = dashboardRepository.getAllApplyByCompanyId(offset, limit, companyId);
-
             appliesDTOs.addAll(appliesDTOList);
         }
         appliesDTOs.sort((a, b) -> b.getApplyId().compareTo(a.getApplyId()));
