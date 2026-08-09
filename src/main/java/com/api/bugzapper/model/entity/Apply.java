@@ -22,4 +22,5 @@ public class Apply {
     private AppUserDTO userId;
     private Integer postRecruitmentId;
     private String status;
+    private String role;
 }

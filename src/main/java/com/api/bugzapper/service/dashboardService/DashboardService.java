@@ -121,10 +121,68 @@ public class DashboardService {
         List<AppliesDTO> appliesDTOs = new ArrayList<>();
         for (Integer companyId : companyIds) {
             List<AppliesDTO> appliesDTOList = dashboardRepository.getAllApplyByCompanyId(offset, limit, companyId);
-            appliesDTOs.addAll(appliesDTOList);
+            boolean isOwner = userRoleRepository.isAdminOfThePost(userId, companyId) != null
+                    && userRoleRepository.isAdminOfThePost(userId, companyId) > 0;
+            boolean isProjectManager = userRoleRepository.isProjectManagerOfCompany(userId, companyId) != null
+                    && userRoleRepository.isProjectManagerOfCompany(userId, companyId) > 0;
+
+            if (!isOwner && !isProjectManager) {
+                continue;
+            }
+
+            for (AppliesDTO apply : appliesDTOList) {
+                String status = apply.getStatus();
+                String viewCondition = "NO_ACTION_REQUIRED";
+
+                if (isProjectManager && isPmReviewStatus(status)) {
+                    viewCondition = "PM_PENDING_REVIEW";
+                }
+
+                if (isOwner && isOwnerApprovalStatus(status)) {
+                    viewCondition = "OWNER_PENDING_APPROVAL";
+                }
+
+                if (isApprovedStatus(status)) {
+                    viewCondition = "APPROVED";
+                }
+
+                apply.setViewCondition(viewCondition);
+                appliesDTOs.add(apply);
+            }
         }
         appliesDTOs.sort((a, b) -> b.getApplyId().compareTo(a.getApplyId()));
         return appliesDTOs;
+    }
+
+    private boolean isApprovedStatus(String status) {
+        if (status == null) {
+            return false;
+        }
+        String normalized = status.trim();
+        return "ACCEPTED".equalsIgnoreCase(normalized)
+                || "APPROVED".equalsIgnoreCase(normalized)
+                || normalized.equalsIgnoreCase("OWNER_APPROVED");
+    }
+
+    private boolean isPmReviewStatus(String status) {
+        if (status == null) {
+            return false;
+        }
+        String normalized = status.trim();
+        return "PENDING".equalsIgnoreCase(normalized)
+                || normalized.equalsIgnoreCase("PENDING WAITING YOUR REVIEW")
+                || normalized.equalsIgnoreCase("WAITING YOUR REVIEW");
+    }
+
+    private boolean isOwnerApprovalStatus(String status) {
+        if (status == null) {
+            return false;
+        }
+        String normalized = status.trim();
+        return "PENDING_OWNER_APPROVAL".equalsIgnoreCase(normalized)
+                || normalized.equalsIgnoreCase("PENDING_OWNER_APPROVAL RESPONSE WAITING YOUR APPROVAL")
+                || normalized.equalsIgnoreCase("RESPONSE WAITING YOUR APPROVAL")
+                || normalized.equalsIgnoreCase("WAITING YOUR APPROVAL");
     }
 
     public List<NotificationDTO> getAllNotificationByUserId(Integer offset, Integer limit) {

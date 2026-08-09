@@ -2,6 +2,7 @@ package com.api.bugzapper.service.applyService;
 
 import com.api.bugzapper.configuration.GetCurrentUser;
 import com.api.bugzapper.constant.RoleId;
+import com.api.bugzapper.exception.CustomNotFoundException;
 import com.api.bugzapper.model.dto.AppUserDTO;
 import com.api.bugzapper.model.dto.AppliesDTO;
 import com.api.bugzapper.model.entity.AppUser;
@@ -22,6 +23,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -48,6 +50,58 @@ class ApplyServiceTest {
 
     @InjectMocks
     private ApplyService applyService;
+
+    @Test
+    void getApplyById_byProjectManager_rejectsOwnerApprovalStatus() {
+        Apply apply = new Apply();
+        apply.setApplyId(10);
+        apply.setStatus("PENDING_OWNER_APPROVAL");
+        AppUserDTO applicant = new AppUserDTO();
+        applicant.setUserId(8);
+        apply.setUserId(applicant);
+
+        AppUser currentUser = new AppUser();
+        currentUser.setUserId(2);
+
+        PostRecruitment postRecruitment = new PostRecruitment();
+        postRecruitment.setCompanyId(100);
+
+        when(getCurrentUser.getCurrentUser()).thenReturn(currentUser);
+        when(applyRepository.getApplyById(10)).thenReturn(apply);
+        when(applyPostRecruitmentRepository.findPostRecruitmentIdByApplyId(10)).thenReturn(22);
+        when(postRecruitmentService.getPostRecruitmentById(22)).thenReturn(postRecruitment);
+        when(postRecruitmentService.canManageRecruitmentForCompany(2, 100)).thenReturn(true);
+        when(userRoleRepository.isAdminOfThePost(2, 100)).thenReturn(0);
+        when(userRoleRepository.isProjectManagerOfCompany(2, 100)).thenReturn(1);
+
+        assertThrows(CustomNotFoundException.class, () -> applyService.getApplyById(10));
+    }
+
+    @Test
+    void getApplyById_byOwner_rejectsPendingStatus() {
+        Apply apply = new Apply();
+        apply.setApplyId(11);
+        apply.setStatus("PENDING");
+        AppUserDTO applicant = new AppUserDTO();
+        applicant.setUserId(8);
+        apply.setUserId(applicant);
+
+        AppUser currentUser = new AppUser();
+        currentUser.setUserId(3);
+
+        PostRecruitment postRecruitment = new PostRecruitment();
+        postRecruitment.setCompanyId(100);
+
+        when(getCurrentUser.getCurrentUser()).thenReturn(currentUser);
+        when(applyRepository.getApplyById(11)).thenReturn(apply);
+        when(applyPostRecruitmentRepository.findPostRecruitmentIdByApplyId(11)).thenReturn(23);
+        when(postRecruitmentService.getPostRecruitmentById(23)).thenReturn(postRecruitment);
+        when(postRecruitmentService.canManageRecruitmentForCompany(3, 100)).thenReturn(true);
+        when(userRoleRepository.isAdminOfThePost(3, 100)).thenReturn(1);
+        when(userRoleRepository.isProjectManagerOfCompany(3, 100)).thenReturn(0);
+
+        assertThrows(CustomNotFoundException.class, () -> applyService.getApplyById(11));
+    }
 
     @Test
     void acceptApply_byProjectManager_setsPendingOwnerApprovalWithoutAssigningRole() {
@@ -118,7 +172,9 @@ class ApplyServiceTest {
     void appliesDto_exposesStatus() {
         AppliesDTO dto = new AppliesDTO();
         dto.setStatus("PENDING");
+        dto.setViewCondition("PM_PENDING_REVIEW");
 
         assertEquals("PENDING", dto.getStatus());
+        assertEquals("PM_PENDING_REVIEW", dto.getViewCondition());
     }
 }

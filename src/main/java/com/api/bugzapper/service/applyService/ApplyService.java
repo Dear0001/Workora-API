@@ -104,20 +104,92 @@ public class ApplyService {
         }
 
         PostRecruitment postRecruitment = getPostRecruitmentForApply(id);
-        if (postRecruitment != null
-                && postRecruitmentService.canManageRecruitmentForCompany(currentUser.getUserId(), postRecruitment.getCompanyId())) {
+        if (postRecruitment == null) {
+            throw new CustomNotFoundException("You do not have permission to view this application.");
+        }
+
+        Integer companyId = postRecruitment.getCompanyId();
+        boolean isOwner = userRoleRepository.isAdminOfThePost(currentUser.getUserId(), companyId) != null
+                && userRoleRepository.isAdminOfThePost(currentUser.getUserId(), companyId) > 0;
+        boolean isProjectManager = userRoleRepository.isProjectManagerOfCompany(currentUser.getUserId(), companyId) != null
+                && userRoleRepository.isProjectManagerOfCompany(currentUser.getUserId(), companyId) > 0;
+
+        String status = apply.getStatus();
+        if (isProjectManager && isPmReviewStatus(status)) {
+            apply.setRole("PM");
+            return apply;
+        }
+
+        if (isOwner && isOwnerApprovalStatus(status)) {
+            apply.setRole("owner_company");
+            return apply;
+        }
+
+        if ((isProjectManager || isOwner) && (isPmReviewStatus(status) || isOwnerApprovalStatus(status) || isApprovedStatus(status))) {
+            apply.setRole(isProjectManager ? "PM" : "owner_company");
             return apply;
         }
 
         throw new CustomNotFoundException("You do not have permission to view this application.");
     }
+
+    private boolean isApprovedStatus(String status) {
+        if (status == null) {
+            return false;
+        }
+        String normalized = status.trim();
+        return "ACCEPTED".equalsIgnoreCase(normalized)
+                || "APPROVED".equalsIgnoreCase(normalized)
+                || normalized.equalsIgnoreCase("OWNER_APPROVED");
+    }
+
+    private boolean isPmReviewStatus(String status) {
+        if (status == null) {
+            return false;
+        }
+        String normalized = status.trim();
+        return "PENDING".equalsIgnoreCase(normalized)
+                || normalized.equalsIgnoreCase("PENDING WAITING YOUR REVIEW")
+                || normalized.equalsIgnoreCase("WAITING YOUR REVIEW");
+    }
+
+    private boolean isOwnerApprovalStatus(String status) {
+        if (status == null) {
+            return false;
+        }
+        String normalized = status.trim();
+        return "PENDING_OWNER_APPROVAL".equalsIgnoreCase(normalized)
+                || normalized.equalsIgnoreCase("PENDING_OWNER_APPROVAL RESPONSE WAITING YOUR APPROVAL")
+                || normalized.equalsIgnoreCase("RESPONSE WAITING YOUR APPROVAL")
+                || normalized.equalsIgnoreCase("WAITING YOUR APPROVAL");
+    }
     public List<ApplyCompany> getApplyByCompanyId(Integer companyId) {
         companyService.getCompanyById(companyId);
-        AppUser currentUser = getCurrentUser.getCurrentUser();
+        AppUser currentUser = getCurrentUser.getUser();
         if (!postRecruitmentService.canManageRecruitmentForCompany(currentUser.getUserId(), companyId)) {
             throw new CustomNotFoundException("You do not have permission to view applications for this company.");
         }
-        return applyRepository.getApplyByCompanyId(companyId);
+
+        List<ApplyCompany> applies = applyRepository.getApplyByCompanyId(companyId);
+        boolean isOwner = userRoleRepository.isAdminOfThePost(currentUser.getUserId(), companyId) != null
+                && userRoleRepository.isAdminOfThePost(currentUser.getUserId(), companyId) > 0;
+        boolean isProjectManager = userRoleRepository.isProjectManagerOfCompany(currentUser.getUserId(), companyId) != null
+                && userRoleRepository.isProjectManagerOfCompany(currentUser.getUserId(), companyId) > 0;
+
+        for (ApplyCompany apply : applies) {
+            String status = apply.getStatus();
+            if (status == null) {
+                apply.setStatus("PENDING_OWNER_APPROVAL");
+            }
+
+            if (isOwner) {
+                apply.setRole("owner_company");
+            } else if (isProjectManager) {
+                apply.setRole("PM");
+            }
+        }
+
+        return applies;
     }
 
     private PostRecruitment getPostRecruitmentForApply(Integer applyId) {

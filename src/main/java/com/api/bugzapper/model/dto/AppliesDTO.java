@@ -18,4 +18,5 @@ public class AppliesDTO {
     private String firstName;
     private String lastName;
     private String status;
+    private String viewCondition;
 }

@@ -24,4 +24,6 @@ public class ApplyCompany {
     private String firstName;
     private String lastName;
     private String companyName;
+    private String status;
+    private String role;
 }
