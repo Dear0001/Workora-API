@@ -332,5 +332,10 @@ INSERT INTO public.roles (role_name, description) VALUES
                                                       ('PROJECT_MANAGER', 'Manages assigned projects and team members'),
                                                       ('PHASE_LEAD', 'Leads specific project phases'),
                                                       ('DEVELOPER', 'Team member working on assigned tasks'),
-                                                      ('RECRUITER', 'Manages recruitment posts')
+                                                      ('RECRUITER', 'Manages recruitment posts'),
+                                                      ('BUG_HUNTER', 'Default role for newly registered users')
+ON CONFLICT (role_name) DO NOTHING;
+
+INSERT INTO public.roles (role_name, description)
+VALUES ('BUG_HUNTER', 'Default role for newly registered users')
 ON CONFLICT (role_name) DO NOTHING;
