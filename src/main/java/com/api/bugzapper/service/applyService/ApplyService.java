@@ -165,7 +165,7 @@ public class ApplyService {
     }
     public List<ApplyCompany> getApplyByCompanyId(Integer companyId) {
         companyService.getCompanyById(companyId);
-        AppUser currentUser = getCurrentUser.getUser();
+        AppUser currentUser = getCurrentUser.getCurrentUser();
         if (!postRecruitmentService.canManageRecruitmentForCompany(currentUser.getUserId(), companyId)) {
             throw new CustomNotFoundException("You do not have permission to view applications for this company.");
         }

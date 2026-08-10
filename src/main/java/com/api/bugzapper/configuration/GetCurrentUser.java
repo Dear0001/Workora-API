@@ -9,4 +9,8 @@ public class GetCurrentUser {
     public AppUser getCurrentUser() {
         return (AppUser) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
     }
+
+    public AppUser getUser() {
+        return getCurrentUser();
+    }
 }
