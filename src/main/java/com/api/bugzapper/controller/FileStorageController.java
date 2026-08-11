@@ -24,7 +24,7 @@ import java.util.Locale;
 @RestController
 @RequestMapping("/api/v1/files")
 @SecurityRequirement(name = "bearerAuth")
-@CrossOrigin(origins = {"http://localhost:3000", "https://www.bugzapper.dev"})
+@CrossOrigin(origins = {"http://localhost:3000", "https://workora-delta.vercel.app"})
 public class FileStorageController {
     private final MinioStorageService minioStorageService;
     private final GetCurrentUser getCurrentUser;
